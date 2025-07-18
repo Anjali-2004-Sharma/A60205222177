@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(120deg, #84fab0, #8fd3f4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+  <div class="bg-white shadow-xl rounded-2xl p-8 max-w-xl w-full text-center">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">🔗 URL Shortener</h1>
+
+    <input
+      id="longUrl"
+      type="text"
+      placeholder="Enter your long URL here..."
+      class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+    />
+    <button
+      onclick="shortenUrl()"
+      class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-xl transition"
+    >
+      🚀 Shorten URL
+    </button>
+
+    <div id="result" class="mt-6 hidden">
+      <p class="text-gray-600">Short URL:</p>
+      <div class="flex items-center justify-center gap-2 mt-2">
+        <a
+          id="shortUrl"
+          href="#"
+          target="_blank"
+          class="text-blue-600 font-semibold break-all underline"
+        ></a>
+        <button
+          onclick="copyToClipboard()"
+          class="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded-xl"
+        >
+          📋 Copy
+        </button>
+      </div>
+    </div>
+
+    <div id="alert" class="mt-4 text-sm text-red-600 hidden"></div>
+  </div>
+
+  <script>
+    async function shortenUrl() {
+      const longUrl = document.getElementById("longUrl").value.trim();
+      const alertDiv = document.getElementById("alert");
+      const resultDiv = document.getElementById("result");
+      const shortUrlLink = document.getElementById("shortUrl");
+
+      alertDiv.classList.add("hidden");
+      resultDiv.classList.add("hidden");
+
+      if (!longUrl || !isValidUrl(longUrl)) {
+        alertDiv.innerText = "❌ Please enter a valid URL!";
+        alertDiv.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/shorten", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ longUrl }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          shortUrlLink.href = data.shortUrl;
+          shortUrlLink.innerText = data.shortUrl;
+          resultDiv.classList.remove("hidden");
+        } else {
+          alertDiv.innerText = "❌ " + data.message || "Something went wrong!";
+          alertDiv.classList.remove("hidden");
+        }
+      } catch (error) {
+        alertDiv.innerText = "❌ Could not connect to the backend server.";
+        alertDiv.classList.remove("hidden");
+      }
+    }
+
+    function copyToClipboard() {
+      const shortUrl = document.getElementById("shortUrl").innerText;
+      navigator.clipboard.writeText(shortUrl).then(() => {
+        alert("📋 Short URL copied to clipboard!");
+      });
+    }
+
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+  </script>
+</body>
+</html>
 
